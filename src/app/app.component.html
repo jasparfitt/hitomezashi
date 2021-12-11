@@ -1,19 +1,29 @@
 <div class="container">
-  <h1>Hitomezashi Patterns</h1>
+  <h1 id="title">Hitomezashi Patterns</h1>
   <h2>Grid</h2>
   <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
-    <input type="radio" class="btn-check" name="btnradio" id="btnradio1" autocomplete="off" checked>
+    <input type="radio" class="btn-check" name="btnradio" id="btnradio1" [formControl]="mode" value="square"
+      autocomplete="off" checked>
     <label class="btn btn-outline-primary" for="btnradio1">Square</label>
 
-    <input type="radio" class="btn-check" name="btnradio" id="btnradio2" autocomplete="off">
+    <input type="radio" class="btn-check" name="btnradio" id="btnradio2" [formControl]="mode" value="isometric"
+      autocomplete="off">
     <label class="btn btn-outline-primary" for="btnradio2">Isometric</label>
   </div>
   <div class="row">
     <div class="col">
-      <canvas id="hit-canvas" class="draw-canvas" width=1000 height=1000></canvas>
+      <canvas id="hit-canvas" class="draw-canvas" width=1000
+        [height]="this.mode.value === 'square' ? 1000: 900"></canvas>
     </div>
     <div class="col">
-      <form [formGroup]="onOffForm">
+      <form [formGroup]="isoOptionsForm" *ngIf="this.mode.value === 'isometric'">
+
+      </form>
+      <form [formGroup]="squareOptionsForm" *ngIf="this.mode.value === 'square'">
+        <div class="mb-3">
+          <label for="size" class="form-label">size</label>
+          <input type="number" class="form-control" id="size" formControlName="size">
+        </div>
         <div class="mb-3">
           <label for="xOn" class="form-label">x on value</label>
           <input type="number" class="form-control" id="xOn" formControlName="xOn">
@@ -29,6 +39,26 @@
         <div class="mb-3">
           <label for="yOff" class="form-label">y off value</label>
           <input type="number" class="form-control" id="yOff" formControlName="yOff">
+        </div>
+        <div class="mb-3">
+          <label for="probX" class="form-label">random probability in x axis</label>
+          <input type="number" class="form-control" id="probX" formControlName="probX">
+        </div>
+        <div class="mb-3">
+          <label for="probY" class="form-label">random probability in y axis</label>
+          <input type="number" class="form-control" id="probY" formControlName="probY">
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" id="colourCheck" formControlName="colourBool">
+          <label class="form-check-label" for="colourCheck">
+            Colour
+          </label>
+        </div>
+        <div *ngIf="this.squareOptionsForm.value.colourBool">
+          <app-colour-input colour="#ffffff" formControlName="colour1" aId="colour1" label="Colour 1">
+          </app-colour-input>
+          <app-colour-input class="ms-4" colour="#000000" formControlName="colour2" aId="colour2" label="Colour 2">
+          </app-colour-input>
         </div>
       </form>
     </div>

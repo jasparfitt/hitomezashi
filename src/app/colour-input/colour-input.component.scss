@@ -1,7 +1,3 @@
-.draw-canvas {
-    height: 90vh;
-}
-
 .colour-input {
     cursor: pointer;
     display: inline-block;
@@ -10,4 +6,10 @@
     border-width: 1px;
     border-color: black;
     border-style: solid;
+    vertical-align: middle;
+}
+
+.colour-label {
+    vertical-align: middle;
+    margin-right: 0.5rem;
 }

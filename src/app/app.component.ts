@@ -1,65 +1,102 @@
 import { Component } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
+interface SquareOptions {
+  size: number,
+  xOn: number,
+  xOff: number,
+  yOn: number,
+  yOff: number,
+  probX: number,
+  probY: number,
+  colourBool: boolean,
+  colour1: string,
+  colour2: string,
+}
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
 })
-export class AppComponent {
+export default class AppComponent {
   title = 'hitomezashi';
 
-  onOffForm = new FormGroup({
+  colour1 = '#000000';
+
+  colour2 = '#ffffff';
+
+  mode = new FormControl('square');
+
+  squareOptionsForm = new FormGroup({
     xOn: new FormControl(1),
     xOff: new FormControl(1),
     yOn: new FormControl(1),
     yOff: new FormControl(1),
-  })
+    probX: new FormControl(0),
+    probY: new FormControl(0),
+    colourBool: new FormControl(false),
+    colour1: new FormControl('#ffffff'),
+    colour2: new FormControl('#000000'),
+    size: new FormControl(100),
+  });
 
-  randBool = (p: number) => {
-    return Math.random() > p;
-  };
+  isoOptionsForm = new FormGroup({});
 
-  getPoint = (i: number, n: number) => {
+  static randBool = (p: number) => Math.random() > p;
+
+  static getPoint = (i: number, n: number) => {
     const total = 1000;
     const unit = total / n;
 
     return (i * unit) + unit * 0.5;
   };
 
-  getIsoPoint = (xNum: number, yNum: number, n: number) => {
+  static getIsoPoint = (xNum: number, yNum: number, n: number) => {
     const total = 1000;
     const unit = total / n;
 
-    let xP = (xNum * unit) + (yNum * unit * 0.5) + (unit * 0.5);
-    let yP = (unit * yNum * Math.sqrt(3) * 0.5) + (unit * 0.5);
+    const xP = (xNum * unit) + (yNum * unit * 0.5) + (unit * 0.5);
+    const yP = (unit * yNum * Math.sqrt(3) * 0.5) + (unit * 0.5);
 
     return { xP, yP };
   };
 
-  drawIsoLine = (ctx: any, xIsoS: number, yIsoS: number, xIsoF: number, yIsoF: number, t: number) => {
+  static drawIsoLine = (
+    ctx: CanvasRenderingContext2D,
+    xIsoS: number,
+    yIsoS: number,
+    xIsoF: number,
+    yIsoF: number,
+    t: number,
+  ) => {
     ctx.beginPath();
-    const { xP: xs, yP: ys } = this.getIsoPoint(xIsoS, yIsoS, t);
-    const { xP: xf, yP: yf } = this.getIsoPoint(xIsoF, yIsoF, t);
+    const { xP: xs, yP: ys } = AppComponent.getIsoPoint(xIsoS, yIsoS, t);
+    const { xP: xf, yP: yf } = AppComponent.getIsoPoint(xIsoF, yIsoF, t);
     ctx.moveTo(xs, ys);
     ctx.lineTo(xf, yf);
     ctx.closePath();
     ctx.stroke();
   };
 
-  drawLine = (ctx: any, xs: number, ys: number, xf: number, yf: number, x: number, y: number) => {
+  static drawLine = (
+    ctx: CanvasRenderingContext2D,
+    xs: number,
+    ys: number,
+    xf: number,
+    yf: number,
+    x: number,
+    y: number,
+  ) => {
     ctx.beginPath();
-    ctx.moveTo(this.getPoint(xs, x), this.getPoint(ys, y));
-    ctx.lineTo(this.getPoint(xf, x), this.getPoint(yf, y));
+    ctx.moveTo(AppComponent.getPoint(xs, x), AppComponent.getPoint(ys, y));
+    ctx.lineTo(AppComponent.getPoint(xf, x), AppComponent.getPoint(yf, y));
     ctx.closePath();
     ctx.stroke();
   };
 
-  isIsoPointOnGrid = (x: number, y: number, n: number) => {
-    return x >= 0 && y >= 0 && (x + y) < n;
-  };
+  static isIsoPointOnGrid = (x: number, y: number, n: number) => x >= 0 && y >= 0 && (x + y) < n;
 
-  hitomezashiTriangle = () => {
+  static hitomezashiTriangle = () => {
     const n = 13;
     const probx = 0.5;
     const proby = 1;
@@ -68,23 +105,23 @@ export class AppComponent {
     const yValues = [];
     const zValues = [];
 
-    for (let i = 0; i < n; i++) {
-      xValues.push(this.randBool(probx));
+    for (let i = 0; i < n; i += 1) {
+      xValues.push(AppComponent.randBool(probx));
     }
 
-    for (let i = 0; i < n; i++) {
-      yValues.push(this.randBool(proby));
+    for (let i = 0; i < n; i += 1) {
+      yValues.push(AppComponent.randBool(proby));
     }
 
-    for (let i = 0; i < n; i++) {
-      zValues.push(this.randBool(probz));
+    for (let i = 0; i < n; i += 1) {
+      zValues.push(AppComponent.randBool(probz));
     }
 
-    const ctx = this.getCanvas();
+    const ctx = AppComponent.getCanvas();
     ctx.fillStyle = 'green';
 
-    for (let i = 0; i < n; i++) {
-      for (let j = 0; j < n; j++) {
+    for (let i = 0; i < n; i += 1) {
+      for (let j = 0; j < n; j += 1) {
         if ((i + j) < n) {
           // const circle = new Path2D();
           // const {xP: x, yP: y} = getIsoPoint(i, j, n);
@@ -100,15 +137,18 @@ export class AppComponent {
         let yVal = j;
 
         if (!val) {
-          yVal++;
+          yVal += 1;
         }
 
         const xStart = i - yVal;
         const xEnd = xStart - 1;
         const yEnd = yVal + 1;
 
-        if (this.isIsoPointOnGrid(xStart, yVal, n) && this.isIsoPointOnGrid(xEnd, yEnd, n)) {
-          this.drawIsoLine(ctx, xStart, yVal, xEnd, yEnd, n);
+        if (
+          AppComponent.isIsoPointOnGrid(xStart, yVal, n)
+          && AppComponent.isIsoPointOnGrid(xEnd, yEnd, n)
+        ) {
+          AppComponent.drawIsoLine(ctx, xStart, yVal, xEnd, yEnd, n);
         }
       }
     });
@@ -137,24 +177,27 @@ export class AppComponent {
         let xVal = j;
 
         if (!val) {
-          xVal--;
+          xVal -= 1;
         }
 
         const xStart = xVal;
         const xEnd = xVal + 1;
         const yEnd = i;
-        if (this.isIsoPointOnGrid(xStart, i, n) && this.isIsoPointOnGrid(xEnd, yEnd, n)) {
-          this.drawIsoLine(ctx, xStart, i, xEnd, yEnd, n);
+        if (
+          AppComponent.isIsoPointOnGrid(xStart, i, n)
+          && AppComponent.isIsoPointOnGrid(xEnd, yEnd, n)
+        ) {
+          AppComponent.drawIsoLine(ctx, xStart, i, xEnd, yEnd, n);
         }
       }
     });
 
     zValues.forEach((val, i) => {
-      let x = n - i - 1;
+      const x = n - i - 1;
       let y = i;
 
       if (!val) {
-        y--;
+        y -= 1;
       }
 
       for (let j = 0; j < n; j += 2) {
@@ -163,27 +206,36 @@ export class AppComponent {
         const xEnd = x;
         const yEnd = yStart - 1;
 
-        if (this.isIsoPointOnGrid(xStart, yStart, n) && this.isIsoPointOnGrid(xEnd, yEnd, n)) {
-          this.drawIsoLine(ctx, xStart, yStart, xEnd, yEnd, n);
+        if (
+          AppComponent.isIsoPointOnGrid(xStart, yStart, n)
+          && AppComponent.isIsoPointOnGrid(xEnd, yEnd, n)
+        ) {
+          AppComponent.drawIsoLine(ctx, xStart, yStart, xEnd, yEnd, n);
         }
       }
     });
-
   };
 
-  drawSquare = (ctx: any, xs: number, ys: number, x: number, y: number, colour: string) => {
+  static drawSquare = (
+    ctx: CanvasRenderingContext2D,
+    xs: number,
+    ys: number,
+    x: number,
+    y: number,
+    colour: string,
+  ) => {
     ctx.beginPath();
     ctx.fillStyle = colour;
-    ctx.moveTo(this.getPoint(xs + 0.0, x), this.getPoint(ys + 0.0, y));
-    ctx.lineTo(this.getPoint(xs + 1.0, x), this.getPoint(ys + 0.0, y));
-    ctx.lineTo(this.getPoint(xs + 1.0, x), this.getPoint(ys + 1.0, y));
-    ctx.lineTo(this.getPoint(xs + 0.0, x), this.getPoint(ys + 1.0, y));
-    ctx.lineTo(this.getPoint(xs + 0.0, x), this.getPoint(ys + 0.0, y));
+    ctx.moveTo(AppComponent.getPoint(xs + 0.0, x), AppComponent.getPoint(ys + 0.0, y));
+    ctx.lineTo(AppComponent.getPoint(xs + 1.0, x), AppComponent.getPoint(ys + 0.0, y));
+    ctx.lineTo(AppComponent.getPoint(xs + 1.0, x), AppComponent.getPoint(ys + 1.0, y));
+    ctx.lineTo(AppComponent.getPoint(xs + 0.0, x), AppComponent.getPoint(ys + 1.0, y));
+    ctx.lineTo(AppComponent.getPoint(xs + 0.0, x), AppComponent.getPoint(ys + 0.0, y));
     ctx.closePath();
     ctx.fill();
   };
 
-  getCanvas = (): CanvasRenderingContext2D => {
+  static getCanvas = (): CanvasRenderingContext2D => {
     const canvas: HTMLCanvasElement = <HTMLCanvasElement>document.getElementById('hit-canvas');
     const ctx = canvas.getContext('2d');
 
@@ -192,51 +244,59 @@ export class AppComponent {
     }
 
     return ctx;
-  }
+  };
 
-  getRandArray = (length: number, prob: number): Array<boolean> => {
+  static getRandArray = (length: number, prob: number): Array<boolean> => {
     const values = [];
 
-    for (let i = 0; i < length; i++) {
-      values.push(this.randBool(prob));
+    for (let i = 0; i < length; i += 1) {
+      values.push(AppComponent.randBool(prob));
     }
 
     return values;
-  }
+  };
 
-  getOnOffArray = (length: number, on: number, off: number, prob: number): Array<boolean> => {
+  static getOnOffArray = (
+    length: number,
+    on: number,
+    off: number,
+    prob: number,
+  ): Array<boolean> => {
     const values = [];
 
-    for (let i = 0; i < length; i++) {
+    for (let i = 0; i < length; i += 1) {
       let val = 1;
 
-      for (let j = 0; j < off; j++) {
+      for (let j = 0; j < off; j += 1) {
         val *= (i + j) % (on + off);
       }
 
-      values.push(!!val);
+      let boolVal = !val;
+
+      if (!AppComponent.randBool(prob)) {
+        boolVal = !boolVal;
+      }
+
+      values.push(boolVal);
     }
 
     return values;
-  }
+  };
 
-  hitomezashiSquare = (onOff: any) => {
-    console.log(onOff);
-    const x = 100;
-    const y = 100;
-    const probx = 0.5;
-    const proby = 0;
-    const xValues = this.getOnOffArray(x, onOff.xOn, onOff.xOff, probx);
-    const yValues = this.getOnOffArray(y, onOff.yOn, onOff.yOff, proby);
+  static hitomezashiSquare = (options: SquareOptions) => {
+    const x = options.size;
+    const y = options.size;
+    const xValues = AppComponent.getOnOffArray(x, options.xOn, options.xOff, options.probX);
+    const yValues = AppComponent.getOnOffArray(y, options.yOn, options.yOff, options.probY);
 
-    const ctx = this.getCanvas();
+    const ctx = AppComponent.getCanvas();
 
     ctx.fillStyle = 'green';
 
-    for (let i = 0; i < x; i++) {
-      for (let j = 0; j < y; j++) {
-        var circle = new Path2D();
-        circle.arc(this.getPoint(i, x), this.getPoint(j, y), 1, 0, 2 * Math.PI);
+    for (let i = 0; i < x; i += 1) {
+      for (let j = 0; j < y; j += 1) {
+        const circle = new Path2D();
+        circle.arc(AppComponent.getPoint(i, x), AppComponent.getPoint(j, y), 1, 0, 2 * Math.PI);
         ctx.fill(circle);
       }
     }
@@ -246,11 +306,11 @@ export class AppComponent {
         let yVal = j;
 
         if (!val) {
-          yVal++;
+          yVal += 1;
         }
 
         if (yVal < y - 1) {
-          this.drawLine(ctx, i, yVal, i, yVal + 1, x, y);
+          AppComponent.drawLine(ctx, i, yVal, i, yVal + 1, x, y);
         }
       }
     });
@@ -260,11 +320,11 @@ export class AppComponent {
         let xVal = j;
 
         if (!val) {
-          xVal++;
+          xVal += 1;
         }
 
         if (xVal < y - 1) {
-          this.drawLine(ctx, xVal, i, xVal + 1, i, x, y);
+          AppComponent.drawLine(ctx, xVal, i, xVal + 1, i, x, y);
         }
       }
     });
@@ -272,7 +332,7 @@ export class AppComponent {
     let colour = true;
 
     const firstRow = [];
-    for (let i = 0; i < x - 1; i++) {
+    for (let i = 0; i < x - 1; i += 1) {
       if (xValues[i] && i !== 0) {
         colour = !colour;
       }
@@ -280,28 +340,32 @@ export class AppComponent {
       firstRow.push(colour);
     }
 
-    for (let i = 0; i < x - 1; i++) {
-      colour = firstRow[i];
-      for (let j = 0; j < y - 1; j++) {
-        const xTrue = !(i % 2);
+    if (options.colourBool) {
+      for (let i = 0; i < x - 1; i += 1) {
+        colour = firstRow[i];
+        for (let j = 0; j < y - 1; j += 1) {
+          const xTrue = !(i % 2);
 
-        if (xTrue == yValues[j] && j !== 0) {
-          colour = !colour;
+          if (xTrue === yValues[j] && j !== 0) {
+            colour = !colour;
+          }
+
+          AppComponent.drawSquare(ctx, i, j, x, y, colour ? options.colour1 : options.colour2);
         }
-
-        this.drawSquare(ctx, i, j, x, y, colour ? '#a8b7ab' : '#E2C391');
       }
     }
   };
 
   draw = () => {
-    let square = true;
-    // square = false;
+    const ctx = AppComponent.getCanvas();
+    ctx.clearRect(0, 0, 1000, 1000);
+    console.log(this.mode.value);
 
+    const square = this.mode.value === 'square';
     if (square) {
-      this.hitomezashiSquare(this.onOffForm.value);
+      AppComponent.hitomezashiSquare(this.squareOptionsForm.value);
     } else {
-      this.hitomezashiTriangle();
+      AppComponent.hitomezashiTriangle();
     }
-  }
+  };
 }

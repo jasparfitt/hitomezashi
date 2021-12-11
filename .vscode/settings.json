@@ -1,0 +1,8 @@
+{
+    "eslint.workingDirectories": ["./"],
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": true
+    },
+    "eslint.alwaysShowStatus": true,
+    "eslint.trace.server": "verbose"
+}

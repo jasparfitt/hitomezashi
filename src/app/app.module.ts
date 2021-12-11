@@ -2,12 +2,14 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-import { AppRoutingModule } from './app-routing.module';
-import { AppComponent } from './app.component';
+import AppRoutingModule from './app-routing.module';
+import AppComponent from './app.component';
+import ColourInputComponent from './colour-input/colour-input.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    ColourInputComponent,
   ],
   imports: [
     BrowserModule,
@@ -16,6 +18,6 @@ import { AppComponent } from './app.component';
     ReactiveFormsModule,
   ],
   providers: [],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export default class AppModule { }
