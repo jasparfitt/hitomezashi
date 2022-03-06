@@ -1,31 +1,9 @@
 import { Component } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
-
-interface SquareOptions {
-  size: number,
-  xOn: number,
-  xOff: number,
-  yOn: number,
-  yOff: number,
-  probX: number,
-  probY: number,
-  colourBool: boolean,
-  colour1: string,
-  colour2: string,
-}
-
-interface IsoOptions {
-  size: number,
-  xOn: number,
-  xOff: number,
-  yOn: number,
-  yOff: number,
-  zOn: number,
-  zOff: number,
-  probX: number,
-  probY: number,
-  probZ: number,
-}
+import { FormControl } from '@angular/forms';
+import { IsometricOptions } from './isometric-form/isometric-form.component';
+import { SquareOptions } from './square-form/square-form.component';
+import { SquareService } from './square.service';
+import { Shape } from './shape';
 
 @Component({
   selector: 'app-root',
@@ -33,39 +11,13 @@ interface IsoOptions {
   styleUrls: ['./app.component.scss'],
 })
 export default class AppComponent {
+  constructor(
+    private squareService: SquareService,
+  ) { }
+
   title = 'hitomezashi';
 
-  colour1 = '#000000';
-
-  colour2 = '#ffffff';
-
-  mode = new FormControl('isometric');
-
-  squareOptionsForm = new FormGroup({
-    xOn: new FormControl(1),
-    xOff: new FormControl(1),
-    yOn: new FormControl(1),
-    yOff: new FormControl(1),
-    probX: new FormControl(0),
-    probY: new FormControl(0),
-    colourBool: new FormControl(false),
-    colour1: new FormControl('#ffffff'),
-    colour2: new FormControl('#000000'),
-    size: new FormControl(100),
-  });
-
-  isoOptionsForm = new FormGroup({
-    xOn: new FormControl(1),
-    xOff: new FormControl(0),
-    yOn: new FormControl(1),
-    yOff: new FormControl(0),
-    zOn: new FormControl(1),
-    zOff: new FormControl(0),
-    probX: new FormControl(0),
-    probY: new FormControl(0),
-    probZ: new FormControl(0),
-    size: new FormControl(12),
-  });
+  mode = new FormControl('square');
 
   static randBool = (p: number) => Math.random() > p;
 
@@ -121,14 +73,44 @@ export default class AppComponent {
 
   static isIsoPointOnGrid = (x: number, y: number, n: number) => x >= 0 && y >= 0 && (x + y) < n;
 
-  static hitomezashiTriangle = (options: IsoOptions) => {
+  static drawTriangle = (
+    ctx: CanvasRenderingContext2D,
+    xs: number,
+    ys: number,
+    n: number,
+    colour: string,
+  ) => {
+    ctx.beginPath();
+    ctx.fillStyle = colour;
+    let xDiff, yDiff;
+
+    if (ys % 2) {
+      xDiff = 1.0;
+      yDiff = -1.0;
+    } else {
+      xDiff = 0.0;
+      yDiff = 1.0;
+    }
+
+    const { xP: x1, yP: y1 } = AppComponent.getIsoPoint(xs + 0.0, Math.ceil(ys / 2) + 0.0, n);
+    const { xP: x2, yP: y2 } = AppComponent.getIsoPoint(xs + 1.0, Math.ceil(ys / 2) + 0.0, n);
+    const { xP: x3, yP: y3 } = AppComponent.getIsoPoint(xs + xDiff, Math.ceil(ys / 2) + yDiff, n);
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.lineTo(x3, y3);
+    ctx.lineTo(x1, y1);
+    ctx.closePath();
+    ctx.fill();
+  };
+
+  static hitomezashiIsometric = (options: IsometricOptions) => {
     const n = options.size;
-    const probx = options.probX;
-    const proby = options.probY;
-    const probz = options.probZ;
-    const xValues = AppComponent.getOnOffArray(n, options.xOn, options.xOff, options.probX);
-    const yValues = AppComponent.getOnOffArray(n, options.yOn, options.yOff, options.probY);
-    const zValues = AppComponent.getOnOffArray(n, options.zOn, options.zOff, options.probZ);
+    const probx = options.xProb;
+    const proby = options.yProb;
+    const probz = options.zProb;
+    const xValues = AppComponent.getOnOffArray(n, options.xOn, options.xOff, options.xProb);
+    const yValues = AppComponent.getOnOffArray(n, options.yOn, options.yOff, options.yProb);
+    const zValues = AppComponent.getOnOffArray(n, options.zOn, options.zOff, options.zProb);
 
     for (let i = 0; i < n; i += 1) {
       xValues.push(AppComponent.randBool(probx));
@@ -156,7 +138,7 @@ export default class AppComponent {
       }
     }
 
-    ctx.strokeStyle = 'red';
+    ctx.strokeStyle = 'black';
     xValues.forEach((val, i) => {
       for (let j = 0; j < n; j += 2) {
         let xVal = j;
@@ -175,7 +157,6 @@ export default class AppComponent {
       }
     });
 
-    ctx.strokeStyle = 'green';
     yValues.forEach((val, i) => {
       for (let j = 0; j < n; j += 2) {
         let xVal = j - 1;
@@ -197,7 +178,6 @@ export default class AppComponent {
       }
     });
 
-    ctx.strokeStyle = 'blue';
     zValues.forEach((val, i) => {
       const x = i;
       let y = 0;
@@ -221,152 +201,230 @@ export default class AppComponent {
       }
     });
 
-    const isOnGrid = (x: number, y: number) => {
-      const xSize = n - 1 - Math.ceil(y / 2);
-      const ySize = (n * 2) - 3;
+    if (options.colourBool) {
 
-      return x >= 0 && y >= 0 && y < ySize && x < xSize;
-    };
+      const isOnGrid = (x: number, y: number) => {
+        const xSize = n - 1 - Math.ceil(y / 2);
+        const ySize = (n * 2) - 3;
 
-    const lineBetween = (x1: number, y1: number, x2: number, y2: number, yEven: boolean) => {
-      const xDiff = x1 - x2;
-      const yDiff = y1 - y2;
-      const yDirDiffValue = yEven ? 1 : -1;
+        return x >= 0 && y >= 0 && y < ySize && x < xSize;
+      };
 
-      let direction = 'z';
+      const lineBetween = (x1: number, y1: number, x2: number, y2: number, yEven: boolean) => {
+        const xDiff = x1 - x2;
+        const yDiff = y1 - y2;
+        const yDirDiffValue = yEven ? 1 : -1;
 
-      if (yDiff === yDirDiffValue) {
-        direction = 'y';
-      } else if (xDiff === 0) {
-        direction = 'x';
-      }
+        let direction = 'z';
 
-      let pointX;
-      let pointY;
+        if (yDiff === yDirDiffValue) {
+          direction = 'y';
+        } else if (xDiff === 0) {
+          direction = 'x';
+        }
 
-      if (yEven) {
+        let pointX;
+        let pointY;
+
+        if (yEven) {
+          if (direction === 'x') {
+            pointX = x1 + 1;
+            pointY = y1 / 2;
+          } else {
+            pointX = x1;
+            pointY = y1 / 2;
+          }
+        } else {
+          if (direction === 'y') {
+            pointX = x1;
+            pointY = Math.ceil(y1 / 2);
+          } else {
+            pointX = x1 + 1;
+            pointY = Math.ceil(y1 / 2) - 1;
+          }
+        }
+
+        let hasLine = false;
+        let val;
+
         if (direction === 'x') {
-          pointX = x1 + 1;
-          pointY = y1 / 2;
+          val = xValues[pointX + pointY];
+          hasLine = !(pointY % 2);
+        } else if (direction === 'y') {
+          val = yValues[pointY];
+          hasLine = !(pointX % 2);
         } else {
-          pointX = x1;
-          pointY = y1 / 2;
+          val = zValues[pointX];
+          hasLine = !(pointY % 2);
         }
-      } else {
-        if (direction === 'y') {
-          pointX = x1;
-          pointY = Math.ceil(y1 / 2);
+
+        if (val) {
+          hasLine = !hasLine;
+        }
+
+        return hasLine;
+      };
+
+      const checkNeighbours = (x: number, y: number, colour: number, grid: Array<Array<number>>) => {
+        const yEven = !(y % 2);
+        const nCoords = [
+          { x, y: y - 1 },
+          { x, y: y + 1 },
+        ];
+        const neighbours: Array<any> = [];
+        const connections: Array<any> = [];
+
+        if (yEven) {
+          nCoords.push({ x: x - 1, y: y + 1 });
         } else {
-          pointX = x1 + 1;
-          pointY = Math.ceil(y1 / 2) - 1;
+          nCoords.push({ x: x + 1, y: y - 1 });
         }
-      }
 
-      let hasLine = false;
-      let val;
-
-      if (direction === 'x') {
-        val = xValues[pointX + pointY];
-        hasLine = !(pointY % 2);
-      } else if (direction === 'y') {
-        val = yValues[pointY];
-        hasLine = !(pointX % 2);
-      } else {
-        val = zValues[pointX];
-        hasLine = !(pointY % 2);
-      }
-
-      if (val) {
-        hasLine = !hasLine;
-      }
-
-      return hasLine;
-    };
-
-    const checkNeighbours = (x: number, y: number, colour: number, grid: Array<Array<number>>) => {
-      const yEven = !(y % 2);
-
-      const n1x = x;
-      const n1y = y - 1;
-      const n2x = x;
-      const n2y = y + 1;
-      let n3x;
-      let n3y;
-      const neighbours = [];
-
-      if (yEven) {
-        n3x = x - 1;
-        n3y = y + 1;
-      } else {
-        n3x = x + 1;
-        n3y = y - 1;
-      }
-
-      if (isOnGrid(n1x, n1y) && !lineBetween(x, y, n1x, n1y, yEven) && !grid[n1x][n1y]) {
-        neighbours.push({
-          x: n1x,
-          y: n1y,
-        });
-        grid[n1x][n1y] = colour;
-      }
-
-      if (isOnGrid(n2x, n2y) && !lineBetween(x, y, n2x, n2y, yEven) && !grid[n2x][n2y]) {
-        neighbours.push({
-          x: n2x,
-          y: n2y,
-        });
-        grid[n2x][n2y] = colour;
-      }
-
-      if (isOnGrid(n3x, n3y) && !lineBetween(x, y, n3x, n3y, yEven) && !grid[n3x][n3y]) {
-        neighbours.push({
-          x: n3x,
-          y: n3y,
-        });
-        grid[n3x][n3y] = colour;
-      }
-
-      return neighbours;
-    };
-
-    const colours: Array<Array<number>> = [];
-
-    for (let i = 0; i < n - 1; i++) {
-      colours.push([0]);
-    }
-
-    let shapeNumber = 1;
-
-    const yLength = (n * 2) - 3;
-
-    for (let j = 0; j < yLength; j++) {
-      for (let i = 0; i < n - 1 - Math.ceil(j / 2); i++) {
-        if (!colours[i][j]) {
-          colours[i][j] = shapeNumber;
-
-          let pointsToCheck = [{
-            x: i,
-            y: j,
-          }];
-
-          const num = shapeNumber;
-          while (pointsToCheck.length !== 0) {
-            let newPoints: Array<any> = [];
-
-            pointsToCheck.forEach(point => {
-              const t = checkNeighbours(point.x, point.y, num, colours);
-              newPoints = newPoints.concat(t);
+        nCoords.forEach(coord => {
+          if (isOnGrid(coord.x, coord.y) && !lineBetween(x, y, coord.x, coord.y, yEven) && !grid[coord.x][coord.y]) {
+            neighbours.push({
+              x: coord.x,
+              y: coord.y,
             });
+            grid[coord.x][coord.y] = colour;
+          } else if (isOnGrid(coord.x, coord.y) && lineBetween(x, y, coord.x, coord.y, yEven) && grid[coord.x][coord.y]) {
+            const pair = [colour, grid[coord.x][coord.y]];
+            pair.sort((a, b) => Math.sign(a - b));
+            connections.push(pair);
+          }
+        });
 
-            pointsToCheck = newPoints;
+        return { neighbours, connections };
+      };
+
+      const colours: Array<Array<number>> = [];
+
+      for (let i = 0; i < n - 1; i++) {
+        colours.push([0]);
+      }
+
+      let shapeNumber = 1;
+
+      const yLength = (n * 2) - 3;
+      const connections: Array<any> = [];
+
+      for (let j = 0; j < yLength; j++) {
+        for (let i = 0; i < n - 1 - Math.ceil(j / 2); i++) {
+          if (!colours[i][j]) {
+            colours[i][j] = shapeNumber;
+
+            let pointsToCheck = [{
+              x: i,
+              y: j,
+            }];
+
+            const num = shapeNumber;
+            while (pointsToCheck.length !== 0) {
+              let newPoints: Array<any> = [];
+
+              pointsToCheck.forEach(point => {
+                const t = checkNeighbours(point.x, point.y, num, colours);
+                newPoints = newPoints.concat(t.neighbours);
+                connections.push(t.connections);
+              });
+
+              pointsToCheck = newPoints;
+            }
+
+            shapeNumber++;
+          }
+        }
+      }
+
+      let connArray: Array<any> = [];
+      connections.forEach(val => connArray = connArray.concat(val));
+
+      const fourColours: Array<any> = [options.colour1, options.colour2, options.colour3, options.colour4, '#000000'];
+      let someColours: Array<any> = [];
+      const someTempColours: Array<any> = [];
+      let runs: Array<number> = [];
+      const checkColour = (i: number) => {
+        runs[i] = (runs[i] ?? 0) + 1;
+        if (runs[i] > 5000) {
+          throw new Error('too many calls');
+        }
+        const neighbourNums = connArray
+          .filter(connection => connection[0] === i || connection[1] === i)
+          .map(connection => connection[0] === i ? connection[1] : connection[0]);
+
+        const neighbourCols = neighbourNums.reduce((p, c) => {
+          if (someTempColours[c] !== undefined && !p.includes(someTempColours[c])) {
+            p.push(someTempColours[c]);
           }
 
-          shapeNumber++;
-        }
-      }
-    }
+          return p;
+        }, []);
 
-    console.log(colours);
+        const noColour = [0, 1, 2, 3].every(v => {
+          if (!neighbourCols.includes(fourColours[v])) {
+            someTempColours[i] = fourColours[v];
+
+            return false;
+          }
+
+          return true;
+        });
+
+        if (noColour) {
+          const colCount = neighbourNums.reduce((p, c) => {
+            if (someTempColours[c] !== undefined) {
+              const ind = fourColours.indexOf(someTempColours[c]);
+              p[ind]++;
+            }
+
+            return p;
+          }, [0, 0, 0, 0]);
+
+          let colInd = colCount.indexOf(Math.min(...colCount));
+          if (Math.random() > 0.9) {
+            colInd = Math.floor(Math.random() * 4);
+          }
+          const chosenColour = fourColours[colInd];
+          someTempColours[i] = chosenColour;
+          const checkAgain: Array<number> = [];
+          neighbourNums.forEach((num) => {
+            if (someTempColours[num] !== undefined && someTempColours[num] === chosenColour) {
+              someTempColours[num] = undefined;
+              checkAgain.push(num);
+            }
+          });
+
+          checkAgain.forEach((num) => {
+            checkColour(num);
+          });
+        }
+      };
+      let attempts = 0;
+
+      const doTheLoop = () => {
+        runs = [];
+        try {
+          attempts++;
+          for (let i = 0; i <= shapeNumber; i++) {
+            checkColour(i);
+          }
+        } catch (e) {
+          if (attempts < 20) {
+            doTheLoop();
+          }
+        }
+      };
+
+      doTheLoop();
+
+      someColours = someTempColours;
+
+      colours.forEach((row, i) => {
+        row.forEach((val, j) => {
+          AppComponent.drawTriangle(ctx, i, j, n, someColours[val]);
+        });
+      });
+    }
   };
 
   static drawSquare = (
@@ -436,89 +494,71 @@ export default class AppComponent {
     return values;
   };
 
-  static hitomezashiSquare = (options: SquareOptions) => {
-    const x = options.size;
-    const y = options.size;
-    const xValues = AppComponent.getOnOffArray(x, options.xOn, options.xOff, options.probX);
-    const yValues = AppComponent.getOnOffArray(y, options.yOn, options.yOff, options.probY);
+  drawLine(ctx: CanvasRenderingContext2D, line: Shape) {
+    ctx.beginPath();
+    ctx.strokeStyle = line.colour;
+    ctx.moveTo(line.points[0].x, line.points[0].y);
+    line.points.forEach((point) => ctx.lineTo(point.x, point.y));
+    ctx.closePath();
+    ctx.stroke();
+  }
+
+  drawShape(ctx: CanvasRenderingContext2D, shape: Shape) {
+    ctx.beginPath();
+    ctx.fillStyle = shape.colour;
+    ctx.moveTo(shape.points[0].x, shape.points[0].y);
+    shape.points.forEach((point) => ctx.lineTo(point.x, point.y));
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  drawDot(ctx: CanvasRenderingContext2D, shape: Shape) {
+    const circle = new Path2D();
+    circle.arc(shape.points[0].x, shape.points[0].y, 1, 0, 2 * Math.PI);
+    ctx.fill(circle);
+  }
+
+  hitomezashiSquare = (options: SquareOptions) => {
+    const xSize = options.size;
+    const ySize = options.size;
+    const xValues = AppComponent.getOnOffArray(xSize, options.xOn, options.xOff, options.xProb);
+    const yValues = AppComponent.getOnOffArray(ySize, options.yOn, options.yOff, options.yProb);
 
     const ctx = AppComponent.getCanvas();
 
     ctx.fillStyle = 'green';
 
-    for (let i = 0; i < x; i += 1) {
-      for (let j = 0; j < y; j += 1) {
+    for (let i = 0; i < xSize; i += 1) {
+      for (let j = 0; j < ySize; j += 1) {
         const circle = new Path2D();
-        circle.arc(AppComponent.getPoint(i, x), AppComponent.getPoint(j, y), 1, 0, 2 * Math.PI);
+        circle.arc(AppComponent.getPoint(i, xSize), AppComponent.getPoint(j, ySize), 1, 0, 2 * Math.PI);
         ctx.fill(circle);
       }
     }
 
-    xValues.forEach((val, i) => {
-      for (let j = 0; j < y - 1; j += 2) {
-        let yVal = j;
-
-        if (!val) {
-          yVal += 1;
-        }
-
-        if (yVal < y - 1) {
-          AppComponent.drawLine(ctx, i, yVal, i, yVal + 1, x, y);
-        }
-      }
-    });
-
-    yValues.forEach((val, i) => {
-      for (let j = 0; j < x - 1; j += 2) {
-        let xVal = j;
-
-        if (!val) {
-          xVal += 1;
-        }
-
-        if (xVal < y - 1) {
-          AppComponent.drawLine(ctx, xVal, i, xVal + 1, i, x, y);
-        }
-      }
-    });
-
-    let colour = true;
-
-    const firstRow = [];
-    for (let i = 0; i < x - 1; i += 1) {
-      if (xValues[i] && i !== 0) {
-        colour = !colour;
-      }
-
-      firstRow.push(colour);
-    }
+    this.squareService.getLines(xValues, yValues, xSize, ySize)
+      .forEach(line => this.drawLine(ctx, line));
 
     if (options.colourBool) {
-      for (let i = 0; i < x - 1; i += 1) {
-        colour = firstRow[i];
-        for (let j = 0; j < y - 1; j += 1) {
-          const xTrue = !(i % 2);
-
-          if (xTrue === yValues[j] && j !== 0) {
-            colour = !colour;
-          }
-
-          AppComponent.drawSquare(ctx, i, j, x, y, colour ? options.colour1 : options.colour2);
-        }
-      }
+      this.squareService.getShapes(xValues, yValues, xSize, ySize, [options.colour1, options.colour2])
+        .forEach(shape => this.drawShape(ctx, shape));
     }
   };
 
-  draw = () => {
+  clearCanvas() {
     const ctx = AppComponent.getCanvas();
     ctx.clearRect(0, 0, 1000, 1000);
-    console.log(this.mode.value);
+  }
 
-    const square = this.mode.value === 'square';
-    if (square) {
-      AppComponent.hitomezashiSquare(this.squareOptionsForm.value);
-    } else {
-      AppComponent.hitomezashiTriangle(this.isoOptionsForm.value);
-    }
-  };
+  drawIsometric(options: IsometricOptions) {
+    this.clearCanvas();
+
+    AppComponent.hitomezashiIsometric(options);
+  }
+
+  drawSquare(options: SquareOptions) {
+    this.clearCanvas();
+
+    this.hitomezashiSquare(options);
+  }
 }

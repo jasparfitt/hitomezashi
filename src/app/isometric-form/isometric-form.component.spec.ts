@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import ColourInputComponent from './colour-input.component';
+import { IsometricFormComponent } from './isometric-form.component';
 
-describe('ColourInputComponent', () => {
-  let component: ColourInputComponent;
-  let fixture: ComponentFixture<ColourInputComponent>;
+describe('IsometricFormComponent', () => {
+  let component: IsometricFormComponent;
+  let fixture: ComponentFixture<IsometricFormComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ColourInputComponent],
+      declarations: [IsometricFormComponent],
     })
       .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ColourInputComponent);
+    fixture = TestBed.createComponent(IsometricFormComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

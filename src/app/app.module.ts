@@ -4,12 +4,14 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import AppRoutingModule from './app-routing.module';
 import AppComponent from './app.component';
-import ColourInputComponent from './colour-input/colour-input.component';
+import { SquareFormComponent } from './square-form/square-form.component';
+import { IsometricFormComponent } from './isometric-form/isometric-form.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    ColourInputComponent,
+    SquareFormComponent,
+    IsometricFormComponent,
   ],
   imports: [
     BrowserModule,

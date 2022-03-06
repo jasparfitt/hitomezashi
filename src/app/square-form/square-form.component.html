@@ -1,0 +1,51 @@
+<form [formGroup]="optionsForm" (ngSubmit)="onSubmit()">
+    <div class="mb-3">
+        <label for="size" class="form-label">size</label>
+        <input type="number" class="form-control" id="size" formControlName="size">
+    </div>
+    <div class="row mb-3">
+        <div class="col">
+            <label for="xOn" class="form-label">x on value</label>
+            <input type="number" class="form-control" id="xOn" formControlName="xOn">
+        </div>
+        <div class="col">
+            <label for="xOff" class="form-label">x off value</label>
+            <input type="number" class="form-control" id="xOff" formControlName="xOff">
+        </div>
+        <div class="col">
+            <label for="xProb" class="form-label">x probability</label>
+            <input type="number" class="form-control" id="xProb" formControlName="xProb">
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col">
+            <label for="yOn" class="form-label">y on value</label>
+            <input type="number" class="form-control" id="yOn" formControlName="yOn">
+        </div>
+        <div class="col">
+            <label for="yOff" class="form-label">y off value</label>
+            <input type="number" class="form-control" id="yOff" formControlName="yOff">
+        </div>
+        <div class="col">
+            <label for="yProb" class="form-label">y probability</label>
+            <input type="number" class="form-control" id="yProb" formControlName="yProb">
+        </div>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="" id="colourCheck" formControlName="colourBool">
+        <label class="form-check-label" for="colourCheck">
+            Colour
+        </label>
+    </div>
+    <div *ngIf="this.optionsForm.value.colourBool" class="row">
+        <div class="col">
+            <label for="colour1" class="form-label">Color 1</label>
+            <input type="color" class="form-control form-control-color" id="colour1" formControlName="colour1" value="#ff0000" title="Choose your color">
+        </div>
+        <div class="col">
+            <label for="colour2" class="form-label">Color 2</label>
+            <input type="color" class="form-control form-control-color" id="colour2" formControlName="colour2" value="#0000ff" title="Choose your color">
+        </div>
+    </div>
+    <button class="btn btn-primary mt-3" type="submit">Draw</button>
+</form>
