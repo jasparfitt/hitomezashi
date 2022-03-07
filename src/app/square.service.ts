@@ -6,49 +6,49 @@ import { Shape } from './shape';
   providedIn: 'root',
 })
 export class SquareService {
-  getPoint = (x: number, xScale: number, y: number, yScale: number) => {
-    return new Point(this.scaleNumber(x, xScale), this.scaleNumber(y, yScale));
+  getPoint = (x: number, xSize: number, y: number, ySize: number) => {
+    return new Point(this.scaleNumber(x, xSize), this.scaleNumber(y, ySize));
   };
 
-  scaleNumber(n: number, scale: number) {
+  scaleNumber(n: number, size: number) {
     const total = 1000;
-    const unit = total / scale;
+    const unit = total / size;
 
     return (n * unit) + unit * 0.5;
   }
 
-  getLines(xValues: Array<boolean>, yValues: Array<boolean>, x: number, y: number) {
+  getLines(xValues: Array<boolean>, yValues: Array<boolean>, xSize: number, ySize: number) {
     const lines: Array<Shape> = [];
 
     xValues.forEach((val, i) => {
-      for (let j = 0; j < y - 1; j += 2) {
+      for (let j = 0; j < ySize - 1; j += 2) {
         let yVal = j;
 
         if (!val) {
           yVal += 1;
         }
 
-        if (yVal < y - 1) {
+        if (yVal < ySize - 1) {
           lines.push(new Shape('#000', [
-            this.getPoint(i, x, yVal, y),
-            this.getPoint(i, x, yVal + 1, y),
+            this.getPoint(i, xSize, yVal, ySize),
+            this.getPoint(i, xSize, yVal + 1, ySize),
           ]));
         }
       }
     });
 
     yValues.forEach((val, i) => {
-      for (let j = 0; j < x - 1; j += 2) {
+      for (let j = 0; j < xSize - 1; j += 2) {
         let xVal = j;
 
         if (!val) {
           xVal += 1;
         }
 
-        if (xVal < y - 1) {
+        if (xVal < ySize - 1) {
           lines.push(new Shape('#000', [
-            this.getPoint(xVal, x, i, y),
-            this.getPoint(xVal + 1, x, i, y),
+            this.getPoint(xVal, xSize, i, ySize),
+            this.getPoint(xVal + 1, xSize, i, ySize),
           ]));
         }
       }
@@ -57,13 +57,13 @@ export class SquareService {
     return lines;
   }
 
-  getShapes(xValues: Array<boolean>, yValues: Array<boolean>, x: number, y: number, colours: Array<string>) {
-    const shapes: Array<Shape> = [];
+  getShapes(xValues: Array<boolean>, yValues: Array<boolean>, xSize: number, ySize: number, colours: Array<string>) {
+    const shapes = [];
     let colour = true;
 
     let lastRowStartColour = colour;
 
-    for (let i = 0; i < x - 1; i += 1) {
+    for (let i = 0; i < xSize - 1; i += 1) {
       colour = lastRowStartColour;
 
       if (xValues[i]) {
@@ -72,7 +72,7 @@ export class SquareService {
 
       lastRowStartColour = colour;
 
-      for (let j = 0; j < y - 1; j += 1) {
+      for (let j = 0; j < ySize - 1; j += 1) {
         const xTrue = !(i % 2);
 
         if (xTrue === yValues[j] && j !== 0) {
@@ -81,11 +81,11 @@ export class SquareService {
 
         const colourString = colour ? colours[0] : colours[1];
         shapes.push(new Shape(colourString, [
-          this.getPoint(i, x, j, y),
-          this.getPoint(i + 1, x, j, y),
-          this.getPoint(i + 1, x, j + 1, y),
-          this.getPoint(i, x, j + 1, y),
-          this.getPoint(i, x, j, y),
+          this.getPoint(i, xSize, j, ySize),
+          this.getPoint(i + 1, xSize, j, ySize),
+          this.getPoint(i + 1, xSize, j + 1, ySize),
+          this.getPoint(i, xSize, j + 1, ySize),
+          this.getPoint(i, xSize, j, ySize),
         ]));
       }
     }
@@ -93,7 +93,17 @@ export class SquareService {
     return shapes;
   }
 
-  getGridPoints() {
+  getGridPoints(xSize: number, ySize: number) {
+    const gridPoints = [];
 
+    for (let i = 0; i < xSize; i += 1) {
+      for (let j = 0; j < ySize; j += 1) {
+        gridPoints.push(new Shape('#0f0', [
+          this.getPoint(i, xSize, j, ySize),
+        ]));
+      }
+    }
+
+    return gridPoints;
   }
 }

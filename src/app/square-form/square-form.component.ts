@@ -1,5 +1,7 @@
 import { Component, Output, EventEmitter } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
+import { tooLargeValidator } from '../too-large-validator.directive';
+import { tooSmallValidator } from '../too-small-validator.directive';
 
 export interface SquareOptions {
   size: number,
@@ -23,16 +25,16 @@ export class SquareFormComponent {
   @Output() draw = new EventEmitter<SquareOptions>();
 
   optionsForm = new FormGroup({
-    xOn: new FormControl(1),
-    xOff: new FormControl(0),
-    xProb: new FormControl(0),
-    yOn: new FormControl(1),
-    yOff: new FormControl(0),
-    yProb: new FormControl(0),
+    xOn: new FormControl(1, [tooSmallValidator(0)]),
+    xOff: new FormControl(0, [tooSmallValidator(0)]),
+    xProb: new FormControl(0, [tooSmallValidator(0), tooLargeValidator(1)]),
+    yOn: new FormControl(1, [tooSmallValidator(0)]),
+    yOff: new FormControl(0, [tooSmallValidator(0)]),
+    yProb: new FormControl(0, [tooSmallValidator(0), tooLargeValidator(1)]),
     colourBool: new FormControl(false),
     colour1: new FormControl('#ff0000'),
     colour2: new FormControl('#0000ff'),
-    size: new FormControl(100),
+    size: new FormControl(100, [tooSmallValidator(2), tooLargeValidator(200)]),
   });
 
   onSubmit() {

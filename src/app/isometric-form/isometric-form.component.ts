@@ -1,5 +1,7 @@
 import { Component, Output, EventEmitter } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
+import { tooLargeValidator } from '../too-large-validator.directive';
+import { tooSmallValidator } from '../too-small-validator.directive';
 
 export interface IsometricOptions {
   size: number,
@@ -28,21 +30,21 @@ export class IsometricFormComponent {
   @Output() draw = new EventEmitter<IsometricOptions>();
 
   optionsForm = new FormGroup({
-    xOn: new FormControl(1),
-    xOff: new FormControl(0),
-    xProb: new FormControl(0),
-    yOn: new FormControl(1),
-    yOff: new FormControl(0),
-    yProb: new FormControl(0),
-    zOn: new FormControl(1),
-    zOff: new FormControl(0),
-    zProb: new FormControl(0),
+    xOn: new FormControl(1, [tooSmallValidator(0)]),
+    xOff: new FormControl(0, [tooSmallValidator(0)]),
+    xProb: new FormControl(0, [tooSmallValidator(0), tooLargeValidator(1)]),
+    yOn: new FormControl(1, [tooSmallValidator(0)]),
+    yOff: new FormControl(0, [tooSmallValidator(0)]),
+    yProb: new FormControl(0, [tooSmallValidator(0), tooLargeValidator(1)]),
+    zOn: new FormControl(1, [tooSmallValidator(0)]),
+    zOff: new FormControl(0, [tooSmallValidator(0)]),
+    zProb: new FormControl(0, [tooSmallValidator(0), tooLargeValidator(1)]),
     colourBool: new FormControl(false),
     colour1: new FormControl('#ff0000'),
     colour2: new FormControl('#0000ff'),
     colour3: new FormControl('#00ff00'),
     colour4: new FormControl('#ffff00'),
-    size: new FormControl(50),
+    size: new FormControl(50, [tooLargeValidator(100), tooSmallValidator(2)]),
   });
 
   onSubmit() {
