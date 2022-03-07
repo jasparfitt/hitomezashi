@@ -1,8 +1,8 @@
-import { TooSmallValidatorDirective } from './too-small-validator.directive';
+import { tooSmallValidator } from './too-small-validator.directive';
 
 describe('TooSmallValidatorDirective', () => {
   it('should create an instance', () => {
-    const directive = new TooSmallValidatorDirective();
+    const directive = tooSmallValidator(0);
     expect(directive).toBeTruthy();
   });
 });

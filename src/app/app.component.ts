@@ -25,6 +25,10 @@ export default class AppComponent {
 
   mode = new FormControl('square');
 
+  loading = false;
+
+  colourFail = false;
+
   getCanvas = (): CanvasRenderingContext2D => {
     const canvas: HTMLCanvasElement = <HTMLCanvasElement>document.getElementById('hit-canvas');
     const ctx = canvas.getContext('2d');
@@ -60,12 +64,14 @@ export default class AppComponent {
   }
 
   drawDot(ctx: CanvasRenderingContext2D, shape: Shape) {
+    ctx.fillStyle = shape.colour;
     const circle = new Path2D();
-    circle.arc(shape.points[0].x, shape.points[0].y, 1, 0, 2 * Math.PI);
+    circle.arc(shape.points[0].x, shape.points[0].y, 4, 0, 2 * Math.PI);
     ctx.fill(circle);
   }
 
-  hitomezashiIsometric = (options: IsometricOptions) => {
+  hitomezashiIsometric = async (options: IsometricOptions) => {
+    this.colourFail = false;
     const size = options.size;
     const xValues = this.patternService.getOnOffArray(size, options.xOn, options.xOff, options.xProb);
     const yValues = this.patternService.getOnOffArray(size, options.yOn, options.yOff, options.yProb);
@@ -82,8 +88,18 @@ export default class AppComponent {
       .forEach(line => this.drawLine(ctx, line));
 
     if (options.colourBool) {
-      this.isometricService.getShapes(xValues, yValues, zValues, size, [options.colour1, options.colour2, options.colour3, options.colour4])
-        .forEach(shape => this.drawShape(ctx, shape));
+      this.loading = true;
+
+      setTimeout(() => {
+        try {
+          this.isometricService.getShapes(xValues, yValues, zValues, size, [options.colour1, options.colour2, options.colour3, options.colour4])
+            .forEach(shape => this.drawShape(ctx, shape));
+        } catch (e) {
+          this.colourFail = true;
+        } finally {
+          this.loading = false;
+        }
+      }, 0);
     }
   };
 

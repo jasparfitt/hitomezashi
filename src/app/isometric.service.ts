@@ -235,10 +235,13 @@ export class IsometricService {
     let shapeColours: Array<string> = [];
     const tempShapeColours: Array<string> = [];
     let runs: Array<number> = [];
+    let runCount = 0;
 
     const checkColour = (i: number) => {
       runs[i] = (runs[i] ?? 0) + 1;
-      if (runs[i] > 5000) {
+      runCount++;
+
+      if (runs[i] > 5000 || runCount > 500000) {
         throw new Error('too many calls');
       }
 
@@ -299,9 +302,7 @@ export class IsometricService {
           }
         });
 
-        checkAgain.forEach((num) => {
-          checkColour(num);
-        });
+        checkAgain.forEach(checkColour);
       }
     };
 
@@ -318,6 +319,8 @@ export class IsometricService {
       } catch (e) {
         if (attempts < 20) {
           doTheLoop();
+        } else {
+          throw e;
         }
       }
     };
@@ -329,20 +332,31 @@ export class IsometricService {
 
     shapeNumbers.forEach((row, i) => {
       row.forEach((number, j) => {
-        let xDiff, yDiff;
+        let xDiff1, yDiff1;
+        let xDiff2, yDiff2;
+        let xDiff3, yDiff3;
+        const diff = 0.01 * (size / 20);
 
         if (j % 2) {
-          xDiff = 1;
-          yDiff = -1;
+          xDiff1 = -diff * 2;
+          yDiff1 = diff;
+          xDiff2 = diff;
+          yDiff2 = diff;
+          xDiff3 = 1 + diff;
+          yDiff3 = -1 - diff * 2;
         } else {
-          xDiff = 0;
-          yDiff = 1;
+          xDiff1 = -diff;
+          yDiff1 = -diff;
+          xDiff2 = diff * 2;
+          yDiff2 = -diff;
+          xDiff3 = -diff;
+          yDiff3 = 1 + diff * 2;
         }
 
         shapes.push(new Shape(shapeColours[number], [
-          this.getPoint(i, Math.ceil(j / 2), size),
-          this.getPoint(i + 1, Math.ceil(j / 2), size),
-          this.getPoint(i + xDiff, Math.ceil(j / 2) + yDiff, size),
+          this.getPoint(i + xDiff1, Math.ceil(j / 2) + yDiff1, size),
+          this.getPoint(i + 1 + xDiff2, Math.ceil(j / 2) + yDiff2, size),
+          this.getPoint(i + xDiff3, Math.ceil(j / 2) + yDiff3, size),
         ]));
       });
     });
